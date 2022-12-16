@@ -4,11 +4,20 @@ local l = {}
 
 function l.read_json(path)
   local file = io.open(path, 'r')
+  if file == nil then
+    return
+  end
+
   io.input(file)
   local content = io.read('*a')
 
-  if content ~= nil then
-    return vim.fn.json_decode(content)
+  if content == nil then
+    return
+  end
+
+  local valid, data = pcall(vim.fn.json_decode, content)
+  if valid then
+    return data
   end
 end
 

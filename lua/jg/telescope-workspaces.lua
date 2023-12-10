@@ -45,13 +45,6 @@ function M.set_current_workspace(workspace)
 end
 
 function M.get_current_workspace()
-  if M.current_workspace == nil then
-    -- todo remove dependnecy to gitbranch
-    local branch = vim.fn['gitbranch#name']()
-    local name = branch:gsub('.*/(.*)/.*', '%1')
-    return name
-  end
-
   return M.current_workspace
 end
 

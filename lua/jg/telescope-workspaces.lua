@@ -70,6 +70,14 @@ function l.find_npm_root()
   end
 end
 
+function l.glob(root, pattern)
+  local paths = {}
+  for _, path in ipairs(vim.fn.globpath(root, pattern, false, true)) do
+    paths[vim.fs.normalize(path)] = true
+  end
+  return paths
+end
+
 function l.get_npm_workspaces()
   local ns = {}
 
@@ -78,12 +86,17 @@ function l.get_npm_workspaces()
     return ns
   end
 
+  local paths = {}
   for _, pattern in ipairs(pkg.workspaces) do
-    for _, path in ipairs(vim.fn.globpath(root, pattern, false, true)) do
-      path = vim.fs.normalize(path)
-      if vim.fn.filereadable(vim.fs.joinpath(path, 'package.json')) == 1 then
-        ns[vim.fs.basename(path)] = path
-      end
+    local exclude = pattern:match('^!(.*)')
+    for path in pairs(l.glob(root, exclude or pattern)) do
+      paths[path] = not exclude or nil
+    end
+  end
+
+  for path in pairs(paths) do
+    if vim.fn.filereadable(vim.fs.joinpath(path, 'package.json')) == 1 then
+      ns[vim.fs.basename(path)] = path
     end
   end
 

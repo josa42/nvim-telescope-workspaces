@@ -52,17 +52,37 @@ function M.get_current_workspace_path()
   return ns[name] or '.'
 end
 
+-- Find the closest package.json with workspaces, starting from the cwd.
+function l.find_npm_root()
+  local dir = vim.fn.getcwd()
+
+  while true do
+    local pkg = l.read_json(vim.fs.joinpath(dir, 'package.json'))
+    if pkg ~= nil and type(pkg.workspaces) == 'table' then
+      return dir, pkg
+    end
+
+    local parent = vim.fs.dirname(dir)
+    if parent == dir then
+      return
+    end
+    dir = parent
+  end
+end
+
 function l.get_npm_workspaces()
   local ns = {}
 
-  local pkg = l.read_json('package.json')
-  if pkg ~= nil then
-    for _, pattern in ipairs(pkg.workspaces or {}) do
-      for _, path in ipairs(vim.fn.glob(pattern, false, true)) do
-        path = vim.fs.normalize(path)
-        if vim.fn.filereadable(vim.fs.joinpath(path, 'package.json')) == 1 then
-          ns[vim.fs.basename(path)] = path
-        end
+  local root, pkg = l.find_npm_root()
+  if root == nil then
+    return ns
+  end
+
+  for _, pattern in ipairs(pkg.workspaces) do
+    for _, path in ipairs(vim.fn.globpath(root, pattern, false, true)) do
+      path = vim.fs.normalize(path)
+      if vim.fn.filereadable(vim.fs.joinpath(path, 'package.json')) == 1 then
+        ns[vim.fs.basename(path)] = path
       end
     end
   end

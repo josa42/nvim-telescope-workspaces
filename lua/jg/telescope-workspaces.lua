@@ -32,6 +32,7 @@ function M.get_workspaces()
   for workspace in pairs(M.get_workspace_paths()) do
     table.insert(workspaces, workspace)
   end
+  table.sort(workspaces)
 
   return workspaces
 end

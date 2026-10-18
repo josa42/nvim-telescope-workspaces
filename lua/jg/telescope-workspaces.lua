@@ -8,15 +8,15 @@ function l.read_json(path)
     return
   end
 
-  io.input(file)
-  local content = io.read('*a')
+  local content = file:read('*a')
+  file:close()
 
   if content == nil then
     return
   end
 
-  local valid, data = pcall(vim.fn.json_decode, content)
-  if valid then
+  local valid, data = pcall(vim.json.decode, content, { luanil = { object = true, array = true } })
+  if valid and type(data) == 'table' then
     return data
   end
 end

@@ -21,10 +21,6 @@ function l.read_json(path)
   end
 end
 
-local function basename(path)
-  return path:gsub('(.*/)(.*)', '%2')
-end
-
 function M.get_workspace_paths()
   -- TODO read workspaces from other monorepo tools?
   return l.get_npm_workspaces()
@@ -62,8 +58,9 @@ function l.get_npm_workspaces()
   if pkg ~= nil then
     for _, pattern in ipairs(pkg.workspaces or {}) do
       for _, path in ipairs(vim.fn.glob(pattern, false, true)) do
+        path = vim.fs.normalize(path)
         if vim.fn.filereadable(vim.fs.joinpath(path, 'package.json')) == 1 then
-          ns[basename(path)] = path
+          ns[vim.fs.basename(path)] = path
         end
       end
     end
